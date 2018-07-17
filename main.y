@@ -2,7 +2,67 @@
 
 %}
 
+%token VOID
+%token INT
+%token CHAR
+%token RETURN
+%token DO
+%token WHILE
+%token PLUS
+%token MINUS
+%token MULTIPLY
+%token DIV
+%token REMAINDER
+%token INC
+%token DEC
+%token BITWISE_AND
+%token BITWISE_OR
+%token BITWISE_NOT
+%token BITWISE_XOR
+%token NOT
+%token LOGICAL_AND
+%token LOGICAL_OR
+%token EQUAL
+%token NOT_EQUAL
+%token LESS_THAN
+%token GREATER_THAN
+%token LESS_EQUAL
+%token GREATER_EQUAL
+%token R_SHIFT
+%token L_SHIFT
+%token ASSIGN
+%token ADD_ASSIGN
+%token MINUS_ASSIGN
+%token SEMICOLON
+%token COMMA
+%token COLON
+%token L_PAREN
+%token R_PAREN
+%token L_CURLY_BRACKET
+%token R_CURLY_BRACKET
+%token L_SQUARE_BRACKET
+%token R_SQUARE_BRACKET
+%token TERNARY_CONDITIONAL
+%token NUMBER_SIGN
+%token PRINTF
+%token SCANF
+%token DEFINE
+%token EXIT
+%token COMMENT
+%token INITIAL
+%token NUM_OCTA
+%token NUM_HEXA
+%token NUM_INTEGER
+%token IDENTIFIER
+%token CHARACTER
+%token STRING
+
+%start inicio
+
 %%
+
+  inicio: programa {printf("SUCCESSFUL COMPILATION."); return;}
+  ;
 
   programa: declaracoes prog
           | funcao prog
@@ -151,11 +211,146 @@
             | MINUS_ASSIGN exp_atrib
   ;
 
-  exp_cond: 
+  exp_cond: exp_or_lgc exp_cond2
 
+  ;
 
+  exp_cond2: TERNARY_CONDITIONAL expressao COLON
+           |
+  ;
 
+  exp_or_lgc: exp_and_lgc exp_or_lgc2
 
+  ;
 
+  exp_or_lgc2: LOGICAL_OR exp_and_lgc exp_or_lgc2
+             |
+  ;
+
+  exp_and_lgc: exp_or exp_and_lgc2
+
+  ;
+
+  exp_and_lgc2: LOGICAL_AND exp_or exp_and_lgc2
+              |
+  ;
+
+  exp_or: exp_xor exp_or2
+
+  ;
+
+  exp_or2: BITWISE_OR exp_xor exp_or2
+         |
+  ;
+
+  exp_xor: exp_and exp_xor2
+
+  ;
+
+  exp_xor2: BITWISE_XOR exp_and exp_xor2
+          |
+  ;
+
+  exp_and: exp_igualdade exp_and2
+
+  ;
+
+  exp_and2: BITWISE_AND exp_igualdade exp_and2
+          |
+  ;
+
+  exp_igualdade: exp_relacional exp_igualdade2
+
+  ;
+
+  exp_igualdade2: EQUAL exp_relacional exp_igualdade2
+                | NOT_EQUAL exp_relacional exp_igualdade2
+                |
+  ;
+
+  exp_relacional: exp_shift exp_relacional2
+
+  ;
+
+  exp_relacional2: LESS_THAN exp_shift exp_relacional2
+                 | LESS_EQUAL exp_shift exp_relacional2
+                 | GREATER_THAN exp_shift exp_relacional2
+                 | GREATER_EQUAL exp_shift exp_relacional2
+                 |
+  ;
+
+  exp_shift: exp_aditiva exp_shift2
+
+  ;
+
+  exp_shift2: L_SHIFT exp_aditiva exp_shift2
+            | R_SHIFT exp_aditiva exp_shift2
+            |
+  ;
+
+  exp_aditiva: exp_mult exp_aditiva2
+
+  ;
+
+  exp_aditiva2: MINUS exp_mult exp_aditiva2
+              | PLUS exp_mult exp_aditiva2
+              |
+  ;
+
+  exp_mult: exp_cast exp_mult2
+
+  ;
+
+  exp_mult2: MULTIPLY exp_cast exp_mult2
+           | DIV exp_cast exp_mult2
+           | REMAINDER exp_cast exp_mult2
+           |
+  ;
+
+  exp_cast: exp_unaria
+          | L_PAREN tipo exp_cast2
+  ;
+
+  exp_cast2: MULTIPLY exp_cast2
+           | R_PAREN exp_cast
+  ;
+
+  exp_unaria: exp_pos_fixa
+            | INC exp_unaria
+            | DEC exp_unaria
+            | BITWISE_AND exp_cast
+            | MULTIPLY exp_cast
+            | PLUS exp_cast
+            | MINUS exp_cast
+            | BITWISE_NOT exp_cast
+            | NOT exp_cast
+  ;
+
+  exp_pos_fixa: exp_primaria
+              | exp_pos_fixa exp_pos_fixa2
+  ;
+
+  exp_pos_fixa2: L_SQUARE_BRACKET expressao R_SQUARE_BRACKET
+               | INC
+               | DEC
+               | L_PAREN R_PAREN
+               | L_PAREN exp_pos_fixa3
+  ;
+
+  exp_pos_fixa3: exp_atrib R_PAREN
+               | exp_atrib COMMA exp_pos_fixa3
+  ;
+
+  exp_primaria: IDENTIFIER
+              | numero
+              | CHARACTER
+              | STRING
+              | L_PAREN expressao R_PAREN
+  ;
+
+  numero: NUM_INTEGER
+        | NUM_HEXA
+        | NUM_OCTAL
+  ;
 
 %%
