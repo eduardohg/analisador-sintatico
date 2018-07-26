@@ -9,7 +9,7 @@ SINTATICO = main.y
 $(PROGRAMA): $(LEXICO) $(SINTATICO)
 	$(FLEX) $(LEXICO)
 	$(BISON) -d $(SINTATICO)
-	$(CC) -c *.c -I.
+	$(CC) -c lex.yy.c main.tab.c -I.
 	$(CC) *.o -o $(PROGRAMA)
 
 clean:
@@ -17,4 +17,4 @@ clean:
 	rm -f *.tab.c
 	rm -f *.tab.h
 	rm -f *.o
-	rm -f *.exe
+	rm -f sintatico

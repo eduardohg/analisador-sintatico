@@ -1,4 +1,20 @@
 %{
+  #include <stdio.h>
+  #include<string.h>
+  #include<stdlib.h>
+  extern int yylex();
+  #define tamanho 100000
+  extern char* yytext;
+  extern int lines;
+  extern int chars;
+  extern char vet[tamanho];
+  extern char vet2[tamanho];
+  extern int erro_sint;
+  int linha,coluna;
+  char tok[tamanho];
+  extern int end;
+  extern int varcoluna;
+  int yyerror(char *s);
 
 %}
 
@@ -8,6 +24,9 @@
 %token RETURN
 %token DO
 %token WHILE
+%token FOR
+%token IF
+%token ELSE
 %token PLUS
 %token MINUS
 %token MULTIPLY
@@ -50,307 +69,355 @@
 %token EXIT
 %token COMMENT
 %token INITIAL
-%token NUM_OCTA
+%token NUM_OCTAL
 %token NUM_HEXA
 %token NUM_INTEGER
 %token IDENTIFIER
 %token CHARACTER
 %token STRING
+%token BREAK
+%token SWITCH
+%token CASE
+%token DEFAULT
+%token TYPEDEF
+%token STRUCT
+%token POINTER
+%token END_FILE
 
 %start inicio
 
 %%
 
-  inicio: programa {printf("SUCCESSFUL COMPILATION."); return;}
+  inicio: programa {printf("SUCCESSFUL COMPILATION."); return 0;}
   ;
 
-  programa: declaracoes prog
-          | funcao prog
+  programa: declaracoes prog {}
+          | funcao prog {}
   ;
 
-  prog: programa
-      |
+  prog: programa {}
+      | {}
   ;
 
-  declaracoes: NUMBER_SIGN DEFINE IDENTIFIER expressao
-             | declaracao_variavel
-             | declaracao_prototipo
+  declaracoes: NUMBER_SIGN DEFINE IDENTIFIER expressao {}
+             | declaracao_variavel {}
+             | declaracao_prototipo {}
   ;
 
-  funcao: tipo funcao2
+  funcao: tipo funcao2 {}
   ;
 
-  funcao2: MULTIPLY funcao2
-         | IDENTIFIER parametros L_CURLY_BRACKET comandos R_CURLY_BRACKET
-         | IDENTIFIER parametros L_CURLY_BRACKET declaracao_variavel funcao3
+  funcao2: MULTIPLY funcao2 {}
+         | IDENTIFIER parametros L_CURLY_BRACKET funcao3 {}
   ;
 
-  funcao3: declaracao_variavel funcao3
-          | comandos R_CURLY_BRACKET
-  ;
+  funcao3: comandos R_CURLY_BRACKET {}
+         | declaracao_variavel funcao3 {}
 
-  declaracao_variavel: tipo decvar2
-
-  ;
-
-  decvar2: MULTIPLY decvar2
-         | IDENTIFIER decvar3
-  ;
-
-  decvar3: L_SQUARE_BRACKET expressao R_SQUARE_BRACKET decvar3
-         | ASSIGN exp_atrib decvar4
-         | decvar4
+  declaracao_variavel: tipo decvar2 {}
 
   ;
 
-  decvar4: SEMICOLON
-         | COMMA decvar2
+  decvar2: MULTIPLY decvar2 {}
+         | IDENTIFIER decvar3 {}
   ;
 
-  declaracao_prototipo: tipo decprot2
-
-  ;
-
-  decprot2: MULTIPLY decprot2
-          | IDENTIFIER parametros SEMICOLON
-  ;
-
-  parametros: L_PAREN param2
+  decvar3: L_SQUARE_BRACKET expressao R_SQUARE_BRACKET decvar3 {}
+         | ASSIGN exp_atrib decvar4 {}
+         | decvar4 {}
 
   ;
 
-  param2: R_PAREN
-        | param3
+  decvar4: SEMICOLON {}
+         | COMMA decvar2 {}
   ;
 
-  param3: tipo param4
-
-  ;
-
-  param4: MULTIPLY param4
-        | IDENTIFIER param5
-  ;
-
-  param5: COMMA param3
-        | R_PAREN
-        | L_SQUARE_BRACKET expressao R_SQUARE_BRACKET param5
-  ;
-
-  tipo: INT
-      | CHAR
-      | VOID
-  ;
-
-  bloco: L_CURLY_BRACKET comandos R_CURLY_BRACKET
+  declaracao_prototipo: tipo decprot2 {}
 
   ;
 
-  comandos: lista_comandos comandos2
+  decprot2: MULTIPLY decprot2 {}
+          | IDENTIFIER parametros SEMICOLON {}
+  ;
+
+  parametros: L_PAREN param2 {}
 
   ;
 
-  comandos2: comandos
-           |
+  param2: R_PAREN {}
+        | param3 {}
   ;
 
-  lista_comandos: DO bloco WHILE L_PAREN expressao R_PAREN SEMICOLON
-                | IF L_PAREN expressao R_PAREN bloco lista_comandos2
-                | WHILE L_PAREN expressao R_PAREN bloco
-                | FOR L_PAREN lista_comandos3
-                | PRINTF L_PAREN STRING lista_comandos4
-                | SCANF L_PAREN STRING COMMA BITWISE_AND IDENTIFIER R_PAREN SEMICOLON
-                | EXIT L_PAREN expressao R_PAREN SEMICOLON
-                | RETURN lista_comandos5
-                | expressao SEMICOLON
-                | SEMICOLON
-                | bloco
-  ;
-
-  lista_comandos2: ELSE bloco
-                 |
-  ;
-
-  lista_comandos3: expressao SEMICOLON ldc1
-                 | SEMICOLON ldc1
-  ;
-
-  ldc1: expressao SEMICOLON ldc2
-      | SEMICOLON ldc2
-  ;
-
-  ldc2: expressao R_PAREN ldc3
-      | R_PAREN ldc3
-  ;
-
-  ldc3: bloco
+  param3: tipo param4 {}
 
   ;
 
-  lista_comandos4: COMMA expressao R_PAREN SEMICOLON
-                 | R_PAREN SEMICOLON
+  param4: MULTIPLY param4 {}
+        | IDENTIFIER param5 {}
   ;
 
-  lista_comandos5: expressao SEMICOLON
-                 | SEMICOLON
+  param5: COMMA param3 {}
+        | R_PAREN {}
+        | L_SQUARE_BRACKET expressao R_SQUARE_BRACKET param5 {}
   ;
 
-  expressao: exp_atrib expressao2
-
+  tipo: INT {}
+      | CHAR {}
+      | VOID {}
   ;
 
-  expressao2: COMMA expressao
-            |
-  ;
-
-  exp_atrib: exp_cond
-           | exp_unaria exp_atrib2
-  ;
-
-  exp_atrib2: ASSIGN exp_atrib
-            | ADD_ASSIGN exp_atrib
-            | MINUS_ASSIGN exp_atrib
-  ;
-
-  exp_cond: exp_or_lgc exp_cond2
+  bloco: L_CURLY_BRACKET comandos R_CURLY_BRACKET {}
 
   ;
 
-  exp_cond2: TERNARY_CONDITIONAL expressao COLON
-           |
-  ;
-
-  exp_or_lgc: exp_and_lgc exp_or_lgc2
+  comandos: lista_comandos comandos2 {}
 
   ;
 
-  exp_or_lgc2: LOGICAL_OR exp_and_lgc exp_or_lgc2
-             |
+  comandos2: comandos {}
+           | {}
   ;
 
-  exp_and_lgc: exp_or exp_and_lgc2
-
+  lista_comandos: DO bloco WHILE L_PAREN expressao R_PAREN SEMICOLON {}
+                | IF L_PAREN expressao R_PAREN bloco lista_comandos2 {}
+                | WHILE L_PAREN expressao R_PAREN bloco {}
+                | FOR L_PAREN lista_comandos3 {}
+                | PRINTF L_PAREN STRING lista_comandos4 {}
+                | SCANF L_PAREN STRING COMMA BITWISE_AND IDENTIFIER R_PAREN SEMICOLON {}
+                | EXIT L_PAREN expressao R_PAREN SEMICOLON {}
+                | RETURN lista_comandos5 {}
+                | expressao SEMICOLON {}
+                | SEMICOLON {}
+                | bloco {}
   ;
 
-  exp_and_lgc2: LOGICAL_AND exp_or exp_and_lgc2
-              |
+  lista_comandos2: ELSE bloco {}
+                 | {}
   ;
 
-  exp_or: exp_xor exp_or2
-
+  lista_comandos3: expressao SEMICOLON ldc1 {}
+                 | SEMICOLON ldc1 {}
   ;
 
-  exp_or2: BITWISE_OR exp_xor exp_or2
-         |
+  ldc1: expressao SEMICOLON ldc2 {}
+      | SEMICOLON ldc2 {}
   ;
 
-  exp_xor: exp_and exp_xor2
-
+  ldc2: expressao R_PAREN ldc3 {}
+      | R_PAREN ldc3 {}
   ;
 
-  exp_xor2: BITWISE_XOR exp_and exp_xor2
-          |
-  ;
-
-  exp_and: exp_igualdade exp_and2
-
-  ;
-
-  exp_and2: BITWISE_AND exp_igualdade exp_and2
-          |
-  ;
-
-  exp_igualdade: exp_relacional exp_igualdade2
+  ldc3: bloco {}
 
   ;
 
-  exp_igualdade2: EQUAL exp_relacional exp_igualdade2
-                | NOT_EQUAL exp_relacional exp_igualdade2
-                |
+  lista_comandos4: COMMA expressao R_PAREN SEMICOLON {}
+                 | R_PAREN SEMICOLON {}
   ;
 
-  exp_relacional: exp_shift exp_relacional2
-
+  lista_comandos5: expressao SEMICOLON {}
+                 | SEMICOLON {}
   ;
 
-  exp_relacional2: LESS_THAN exp_shift exp_relacional2
-                 | LESS_EQUAL exp_shift exp_relacional2
-                 | GREATER_THAN exp_shift exp_relacional2
-                 | GREATER_EQUAL exp_shift exp_relacional2
-                 |
-  ;
-
-  exp_shift: exp_aditiva exp_shift2
+  expressao: exp_atrib expressao2 {}
 
   ;
 
-  exp_shift2: L_SHIFT exp_aditiva exp_shift2
-            | R_SHIFT exp_aditiva exp_shift2
-            |
+  expressao2: COMMA expressao {}
+            | {}
   ;
 
-  exp_aditiva: exp_mult exp_aditiva2
+  exp_atrib: exp_cond {}
+           | exp_unaria exp_atrib2 {}
+  ;
+
+  exp_atrib2: ASSIGN exp_atrib {}
+            | ADD_ASSIGN exp_atrib {}
+            | MINUS_ASSIGN exp_atrib {}
+  ;
+
+  exp_cond: exp_or_lgc exp_cond2 {}
 
   ;
 
-  exp_aditiva2: MINUS exp_mult exp_aditiva2
-              | PLUS exp_mult exp_aditiva2
-              |
+  exp_cond2: TERNARY_CONDITIONAL expressao COLON {}
+           | {}
   ;
 
-  exp_mult: exp_cast exp_mult2
+  exp_or_lgc: exp_and_lgc exp_or_lgc2 {}
 
   ;
 
-  exp_mult2: MULTIPLY exp_cast exp_mult2
-           | DIV exp_cast exp_mult2
-           | REMAINDER exp_cast exp_mult2
-           |
+  exp_or_lgc2: LOGICAL_OR exp_and_lgc exp_or_lgc2 {}
+             | {}
   ;
 
-  exp_cast: exp_unaria
-          | L_PAREN tipo exp_cast2
+  exp_and_lgc: exp_or exp_and_lgc2 {}
+
   ;
 
-  exp_cast2: MULTIPLY exp_cast2
-           | R_PAREN exp_cast
+  exp_and_lgc2: LOGICAL_AND exp_or exp_and_lgc2 {}
+              | {}
   ;
 
-  exp_unaria: exp_pos_fixa
-            | INC exp_unaria
-            | DEC exp_unaria
-            | BITWISE_AND exp_cast
-            | MULTIPLY exp_cast
-            | PLUS exp_cast
-            | MINUS exp_cast
-            | BITWISE_NOT exp_cast
-            | NOT exp_cast
+  exp_or: exp_xor exp_or2 {}
+
   ;
 
-  exp_pos_fixa: exp_primaria
-              | exp_pos_fixa exp_pos_fixa2
+  exp_or2: BITWISE_OR exp_xor exp_or2 {}
+         | {}
   ;
 
-  exp_pos_fixa2: L_SQUARE_BRACKET expressao R_SQUARE_BRACKET
-               | INC
-               | DEC
-               | L_PAREN R_PAREN
-               | L_PAREN exp_pos_fixa3
+  exp_xor: exp_and exp_xor2 {}
+
   ;
 
-  exp_pos_fixa3: exp_atrib R_PAREN
-               | exp_atrib COMMA exp_pos_fixa3
+  exp_xor2: BITWISE_XOR exp_and exp_xor2 {}
+          | {}
   ;
 
-  exp_primaria: IDENTIFIER
-              | numero
-              | CHARACTER
-              | STRING
-              | L_PAREN expressao R_PAREN
+  exp_and: exp_igualdade exp_and2 {}
+
   ;
 
-  numero: NUM_INTEGER
-        | NUM_HEXA
-        | NUM_OCTAL
+  exp_and2: BITWISE_AND exp_igualdade exp_and2 {}
+          | {}
+  ;
+
+  exp_igualdade: exp_relacional exp_igualdade2 {}
+
+  ;
+
+  exp_igualdade2: EQUAL exp_relacional exp_igualdade2 {}
+                | NOT_EQUAL exp_relacional exp_igualdade2 {}
+                | {}
+  ;
+
+  exp_relacional: exp_shift exp_relacional2 {}
+
+  ;
+
+  exp_relacional2: LESS_THAN exp_shift exp_relacional2 {}
+                 | LESS_EQUAL exp_shift exp_relacional2 {}
+                 | GREATER_THAN exp_shift exp_relacional2 {}
+                 | GREATER_EQUAL exp_shift exp_relacional2 {}
+                 | {}
+  ;
+
+  exp_shift: exp_aditiva exp_shift2 {}
+
+  ;
+
+  exp_shift2: L_SHIFT exp_aditiva exp_shift2 {}
+            | R_SHIFT exp_aditiva exp_shift2 {}
+            | {}
+  ;
+
+  exp_aditiva: exp_mult exp_aditiva2 {}
+
+  ;
+
+  exp_aditiva2: MINUS exp_mult exp_aditiva2 {}
+              | PLUS exp_mult exp_aditiva2 {}
+              | {}
+  ;
+
+  exp_mult: exp_cast exp_mult2 {}
+
+  ;
+
+  exp_mult2: MULTIPLY exp_cast exp_mult2 {}
+           | DIV exp_cast exp_mult2 {}
+           | REMAINDER exp_cast exp_mult2 {}
+           | {}
+  ;
+
+  exp_cast: exp_unaria {}
+          | L_PAREN tipo exp_cast2 {}
+  ;
+
+  exp_cast2: MULTIPLY exp_cast2 {}
+           | R_PAREN exp_cast {}
+  ;
+
+  exp_unaria: exp_pos_fixa {}
+            | INC exp_unaria {}
+            | DEC exp_unaria {}
+            | BITWISE_AND exp_cast {}
+            | MULTIPLY exp_cast {}
+            | PLUS exp_cast {}
+            | MINUS exp_cast {}
+            | BITWISE_NOT exp_cast {}
+            | NOT exp_cast {}
+  ;
+
+  exp_pos_fixa: exp_primaria {}
+              | exp_pos_fixa exp_pos_fixa2 {}
+  ;
+
+  exp_pos_fixa2: L_SQUARE_BRACKET expressao R_SQUARE_BRACKET {}
+               | INC {}
+               | DEC {}
+               | L_PAREN R_PAREN {}
+               | L_PAREN exp_pos_fixa3 {}
+  ;
+
+  exp_pos_fixa3: exp_atrib R_PAREN {}
+               | exp_atrib COMMA exp_pos_fixa3 {}
+  ;
+
+  exp_primaria: IDENTIFIER {}
+              | numero {}
+              | CHARACTER {}
+              | STRING {}
+              | L_PAREN expressao R_PAREN {}
+  ;
+
+  numero: NUM_INTEGER {}
+        | NUM_HEXA {}
+        | NUM_OCTAL {}
   ;
 
 %%
+
+int yyerror(char *s){
+
+
+
+  if(!erro_sint){
+    erro_sint = 1;
+    linha = lines;
+    strcpy(tok,vet);
+    coluna = chars - strlen(tok)+1;
+  }
+  if(end){
+    end = 0;
+    linha = lines;
+    coluna = varcoluna+1;
+    if(vet2[strlen(vet2)-1]=='\n')
+      vet2[strlen(vet2)-1] = '\0';
+
+    printf("error:syntax:%d:%d: expected declaration or statement at end of input\n%s\n%*s",linha,coluna,vet2,coluna,"^");
+    exit(0);
+  }
+
+}
+
+int main(){
+  char str[tamanho];
+  int ind = 0;
+	yyparse();
+  while((yylex()));
+  while(vet2[ind] != '\0'){
+
+    if(vet2[ind] == '\n')
+      break;
+    str[ind] = vet2[ind];
+    ind++;
+  }
+  str[ind] = '\0';
+  if(erro_sint == 1){
+    printf("error:syntax:%d:%d: %s\n%s\n%*s",linha,coluna,tok,str,coluna, "^");
+  }
+
+}
